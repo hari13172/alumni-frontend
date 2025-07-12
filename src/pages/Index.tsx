@@ -15,7 +15,7 @@ export type AlumniData = {
   email: string;
   graduationYear: string;
   department: string;
-  currentJob: string;
+  job: string;
   phone: string;
   selfieUrl: string;
   submittedAt: Date;

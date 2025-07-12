@@ -45,7 +45,7 @@ const alumniSchema = z.object({
     { message: "Please select a valid year" }
   ),
   department: z.string().min(1, "Department is required"),
-  currentJob: z.string().min(1, "Current job info is required"),
+  job: z.string().min(1, "Current job info is required"),
 });
 
 type FormData = z.infer<typeof alumniSchema>;
@@ -75,7 +75,7 @@ const AlumniForm: React.FC<AlumniFormProps> = () => {
           setValue("phone", data.phone);
           setValue("graduationYear", data.graduationYear);
           setValue("department", data.department);
-          setValue("currentJob", data.job);
+          setValue("job", data.job);
           setSelfie(data.selfieUrl);
         })
         .catch((err) => {
@@ -220,10 +220,10 @@ const AlumniForm: React.FC<AlumniFormProps> = () => {
 
             {/* Current Job */}
             <div className="space-y-2">
-              <Label htmlFor="currentJob">Current Job Title & Company</Label>
-              <Textarea rows={3} {...register("currentJob")} id="currentJob" />
-              {errors.currentJob && (
-                <p className="text-red-500 text-sm">{errors.currentJob.message}</p>
+              <Label htmlFor="job">Current Job Title & Company</Label>
+              <Textarea rows={3} {...register("job")} id="job" />
+              {errors.job && (
+                <p className="text-red-500 text-sm">{errors.job.message}</p>
               )}
             </div>
 

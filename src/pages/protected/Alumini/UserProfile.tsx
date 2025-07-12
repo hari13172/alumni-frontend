@@ -27,7 +27,7 @@ const UserProfile = () => {
     email: "",
     graduationYear: "",
     department: "",
-    currentJob: "",
+    job: "",
     phone: "",
     selfieUrl: "",
     submittedAt: new Date(),
@@ -177,7 +177,7 @@ const UserProfile = () => {
                     <Briefcase className="h-5 w-5 text-blue-600 mt-1" />
                     <div>
                       <p className="text-sm text-gray-500">Current Position</p>
-                      <p className="font-medium">{userData.currentJob}</p>
+                      <p className="font-medium">{userData.job}</p>
                     </div>
                   </div>
                 </div>
