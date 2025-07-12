@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Lock, User, Eye, EyeOff } from "lucide-react";
 import axios from "axios";
+import { api } from "@/api/api";
+import { toast } from "sonner";
 
 
 interface AdminLoginProps {
@@ -26,7 +28,7 @@ const AdminLogin = ({ onLogin, onCancel }: AdminLoginProps) => {
 
         
         try {
-            const response = await axios.post("http://localhost:3000/api/admin/login", {
+            const response = await axios.post(`${api.ADMIN_BASE_URL}/login`, {
                 username,
                 password,
             });
@@ -34,6 +36,7 @@ const AdminLogin = ({ onLogin, onCancel }: AdminLoginProps) => {
             // Store token in localStorage
             localStorage.setItem("adminToken", token);
             setIsLoading(false);
+            toast.success("Login successful!");
             onLogin(true);
         } catch (err: unknown) {
             setIsLoading(false);

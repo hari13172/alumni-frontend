@@ -129,16 +129,9 @@ const AlumniForm: React.FC<AlumniFormProps> = () => {
 
   const graduationYears = Array.from({ length: 50 }, (_, i) => currentYear - i);
   const departments = [
-    "Computer Science",
-    "Electrical Engineering",
-    "Mechanical Engineering",
-    "Civil Engineering",
-    "Business Administration",
-    "Arts & Sciences",
-    "Medicine",
-    "Law",
-    "Architecture",
-    "Other",
+    "MCA",
+    "MSC",
+    "DS",
   ];
 
   return (

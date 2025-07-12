@@ -14,8 +14,9 @@ import {
   GraduationCap,
   BarChart3
 } from "lucide-react";
+import axios from "axios";
 import type { AlumniData } from "@/pages/Index";
-
+import { api } from "@/api/api";
 
 const AdminPanel = () => {
   const [alumniData, setAlumniData] = useState<AlumniData[]>([]);
@@ -23,16 +24,43 @@ const AdminPanel = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState("All");
   const [selectedYear, setSelectedYear] = useState("All");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Load data from localStorage
-    const data = JSON.parse(localStorage.getItem('alumniData') || '[]');
-    setAlumniData(data);
-    setFilteredData(data);
+    const fetchAlumniData = async () => {
+      try {
+        const token = localStorage.getItem("adminToken");
+        if (!token) {
+          setError("No authentication token found. Please log in.");
+          setLoading(false);
+          return;
+        }
+
+        const response = await axios.get(`${api.ADMIN_BASE_URL}/alumni`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        // Log the raw data to debug submittedAt values
+        console.log("API Response:", response.data);
+        setAlumniData(response.data);
+        setFilteredData(response.data);
+      } catch (err: unknown) {
+        if (axios.isAxiosError(err)) {
+          setError(err.response?.data?.message || "Failed to fetch alumni data");
+        } else {
+          setError("Failed to fetch alumni data");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAlumniData();
   }, []);
 
   useEffect(() => {
-    // Filter data based on search and filters
     const filtered = alumniData.filter(alumni => {
       const matchesSearch = alumni.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            alumni.email.toLowerCase().includes(searchTerm.toLowerCase());
@@ -51,7 +79,7 @@ const AdminPanel = () => {
   const deleteAlumni = (id: string) => {
     const updatedData = alumniData.filter(alumni => alumni.id !== id);
     setAlumniData(updatedData);
-    localStorage.setItem('alumniData', JSON.stringify(updatedData));
+    setFilteredData(updatedData);
   };
 
   const exportData = () => {
@@ -65,6 +93,10 @@ const AdminPanel = () => {
   };
 
   const formatDate = (date: Date) => {
+    if (!date || isNaN(new Date(date).getTime())) {
+      console.warn("Invalid date value:", date);
+      return "N/A"; // Fallback for invalid dates
+    }
     return new Intl.DateTimeFormat('en-US', {
       year: 'numeric',
       month: 'short',
@@ -74,8 +106,21 @@ const AdminPanel = () => {
     }).format(new Date(date));
   };
 
-  // Statistics
-  const totalAlumni = alumniData.length;
+
+  if (loading) {
+    return <div className="min-h-screen p-4 bg-gray-50 flex items-center justify-center">Loading...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen p-4 bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 text-lg">{error}</p>
+          <Button onClick={() => window.location.reload()} className="mt-4">Retry</Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen p-4 bg-gray-50">
@@ -96,7 +141,7 @@ const AdminPanel = () => {
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Total Alumni</p>
-                  <p className="text-2xl font-bold text-gray-900">{totalAlumni}</p>
+                  <p className="text-2xl font-bold text-gray-900">{alumniData.length}</p>
                 </div>
               </div>
             </CardContent>
