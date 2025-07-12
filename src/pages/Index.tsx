@@ -18,7 +18,7 @@ export type AlumniData = {
   job: string;
   phone: string;
   selfieUrl: string;
-  submittedAt: Date;
+  createdAt: Date;
 };
 
 const Index = () => {

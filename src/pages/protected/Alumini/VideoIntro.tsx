@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Play, Volume2, VolumeX } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Play, Volume2, VolumeX, Pause } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface VideoIntroProps {
@@ -11,37 +11,76 @@ const VideoIntro = ({ onComplete }: VideoIntroProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [timeRemaining, setTimeRemaining] = useState(5);
+  const [timeRemaining, setTimeRemaining] = useState(0);
+  const [videoPaused, setVideoPaused] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Sample video URLs - replace with your actual video files
+  const videoSources = {
+    university: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+    department: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4"
+  };
 
   useEffect(() => {
-    if (isPlaying) {
-      const duration = currentVideo === 'university' ? 5 : 30;
-      const interval = setInterval(() => {
-        setProgress((prev) => {
-          const newProgress = prev + (100 / duration);
-          setTimeRemaining(Math.ceil(duration - (newProgress / 100) * duration));
-          
-          if (newProgress >= 100) {
-            if (currentVideo === 'university') {
-              setCurrentVideo('department');
-              setProgress(0);
-              setTimeRemaining(30);
-              return 0;
-            } else {
-              onComplete();
-              return 100;
-            }
-          }
-          return newProgress;
-        });
-      }, 1000);
+    const video = videoRef.current;
+    if (!video) return;
 
-      return () => clearInterval(interval);
+    const handleTimeUpdate = () => {
+      const currentTime = video.currentTime;
+      const duration = video.duration;
+      const progressPercent = (currentTime / duration) * 100;
+      setProgress(progressPercent);
+      setTimeRemaining(Math.ceil(duration - currentTime));
+    };
+
+    const handleEnded = () => {
+      if (currentVideo === 'university') {
+        setCurrentVideo('department');
+        setProgress(0);
+      } else {
+        onComplete();
+      }
+    };
+
+    const handleLoadedMetadata = () => {
+      setTimeRemaining(Math.ceil(video.duration));
+    };
+
+    video.addEventListener('timeupdate', handleTimeUpdate);
+    video.addEventListener('ended', handleEnded);
+    video.addEventListener('loadedmetadata', handleLoadedMetadata);
+
+    return () => {
+      video.removeEventListener('timeupdate', handleTimeUpdate);
+      video.removeEventListener('ended', handleEnded);
+      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+    };
+  }, [currentVideo, onComplete]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (isPlaying && !videoPaused) {
+      video.play().catch(console.error);
+    } else {
+      video.pause();
     }
-  }, [isPlaying, currentVideo, onComplete]);
+  }, [isPlaying, videoPaused, currentVideo]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (video) {
+      video.muted = isMuted;
+    }
+  }, [isMuted]);
 
   const startVideo = () => {
     setIsPlaying(true);
+  };
+
+  const togglePlayPause = () => {
+    setVideoPaused(!videoPaused);
   };
 
   const skipVideo = () => {
@@ -79,27 +118,29 @@ const VideoIntro = ({ onComplete }: VideoIntroProps) => {
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center relative">
-      {/* Video Placeholder */}
+      {/* Video Player */}
       <div className="w-full h-full flex items-center justify-center relative">
-        <div className="w-full max-w-4xl aspect-video bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center text-white">
-          <div className="text-center space-y-4">
-            <div className="text-4xl font-bold">
-              {currentVideo === 'university' ? '🏛️ University Introduction' : '🏢 Department Infrastructure'}
-            </div>
-            <div className="text-xl">
-              {currentVideo === 'university' 
-                ? 'Showcasing our prestigious university heritage and values'
-                : 'Exploring our state-of-the-art department facilities and labs'
-              }
-            </div>
-            <div className="text-lg text-blue-200">
-              {currentVideo === 'university' ? '5 seconds video' : '30 seconds video'}
-            </div>
-          </div>
+        <div className="w-full max-w-4xl aspect-video rounded-lg overflow-hidden">
+          <video
+            ref={videoRef}
+            src={videoSources[currentVideo]}
+            className="w-full h-full object-cover"
+            playsInline
+            preload="metadata"
+          />
         </div>
 
         {/* Video Controls */}
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-70 rounded-lg p-4 flex items-center space-x-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={togglePlayPause}
+            className="text-white hover:bg-white hover:bg-opacity-20"
+          >
+            {videoPaused ? <Play className="h-5 w-5" /> : <Pause className="h-5 w-5" />}
+          </Button>
+
           <Button
             variant="ghost"
             size="sm"
@@ -112,7 +153,7 @@ const VideoIntro = ({ onComplete }: VideoIntroProps) => {
           <div className="flex items-center space-x-3">
             <div className="w-48 bg-gray-600 rounded-full h-2">
               <div 
-                className="bg-blue-500 h-2 rounded-full transition-all duration-1000"
+                className="bg-blue-500 h-2 rounded-full transition-all duration-300"
                 style={{ width: `${progress}%` }}
               />
             </div>
@@ -141,6 +182,13 @@ const VideoIntro = ({ onComplete }: VideoIntroProps) => {
           {currentVideo === 'university' ? 'University Introduction' : 'Department Infrastructure'}
         </div>
       </div>
+
+      {/* Loading indicator when video is buffering */}
+      {videoPaused && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="text-white text-lg">Video Paused</div>
+        </div>
+      )}
     </div>
   );
 };

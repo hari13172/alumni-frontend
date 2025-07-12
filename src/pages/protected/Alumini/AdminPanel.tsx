@@ -33,7 +33,7 @@ const AdminPanel = () => {
   const [selectedDepartment, setSelectedDepartment] = useState("All");
   const [selectedYear, setSelectedYear] = useState("All");
   const [selectedAlumni, setSelectedAlumni] = useState<AlumniData | null>(null);
-  const [isSheetOpen, setIsSheetOpen] = useState(false); // Added missing state
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -53,8 +53,12 @@ const AdminPanel = () => {
           },
         });
         console.log("API Response:", response.data);
-        setAlumniData(response.data);
-        setFilteredData(response.data);
+        const processedData = response.data.map((alumni: AlumniData) => ({
+          ...alumni,
+          submittedAt: alumni.createdAt,
+        }));
+        setAlumniData(processedData);
+        setFilteredData(processedData);
       } catch (err: unknown) {
         if (axios.isAxiosError(err)) {
           setError(err.response?.data?.message || "Failed to fetch alumni data");
@@ -101,9 +105,9 @@ const AdminPanel = () => {
     link.click();
   };
 
-   const formatDate = (date: Date) => {
+  const formatDate = (date: Date) => {
     if (!date || isNaN(new Date(date).getTime())) {
-      return "N/A"
+      return "N/A";
     }
     return new Intl.DateTimeFormat("en-US", {
       year: "numeric",
@@ -111,8 +115,8 @@ const AdminPanel = () => {
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-    }).format(new Date(date))
-  }
+    }).format(new Date(date));
+  };
 
   const handleViewAlumni = (alumni: AlumniData) => {
     setSelectedAlumni(alumni);
@@ -291,7 +295,7 @@ const AdminPanel = () => {
                             <p className="text-sm text-gray-600">{alumni.job}</p>
                           </div>
                           <div className="text-right">
-                            <p className="text-xs text-gray-500 mb-2">Registered: {formatDate(alumni.submittedAt)}</p>
+                            <p className="text-xs text-gray-500 mb-2">Registered: {formatDate(alumni.createdAt)}</p>
                             <div className="flex justify-end space-x-2">
                               <Button size="sm" variant="outline" onClick={() => handleViewAlumni(alumni)}>
                                 <Eye className="h-4 w-4" />
@@ -380,10 +384,10 @@ const AdminPanel = () => {
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="flex items-center gap-3 bg-gray-50 rounded-lg p-3">
                       <Building className="h-4 w-4 text-gray-500" />
-                      {/* <div>
-            <p className="text-xs text-gray-500">Current Company</p>
-            <p className="text-gray-900">{selectedAlumni.currentCompan || "Not specified"}</p>
-                </div> */}
+                      <div>
+                        <p className="text-xs text-gray-500">Current Company</p>
+                        <p className="text-gray-900">Not specified</p>
+                      </div>
                     </div>
                     <div className="flex items-center gap-3 bg-gray-50 rounded-lg p-3">
                       <Briefcase className="h-4 w-4 text-gray-500" />
@@ -433,7 +437,7 @@ const AdminPanel = () => {
                     <Clock className="h-4 w-4 text-gray-500" />
                     <div>
                       <p className="text-xs text-gray-500">Registered On</p>
-                      <p className="text-gray-900">{formatDate(selectedAlumni.submittedAt)}</p>
+                      <p className="text-gray-900">{formatDate(selectedAlumni.createdAt)}</p>
                     </div>
                   </div>
                 </div>

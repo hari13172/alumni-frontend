@@ -7,6 +7,7 @@ import { Lock, User, Eye, EyeOff } from "lucide-react";
 import axios from "axios";
 import { api } from "@/api/api";
 import { toast } from "sonner";
+import { useNavigate } from "react-router";
 
 
 interface AdminLoginProps {
@@ -20,6 +21,7 @@ const AdminLogin = ({ onLogin, onCancel }: AdminLoginProps) => {
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const navigate = useNavigate();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -38,6 +40,7 @@ const AdminLogin = ({ onLogin, onCancel }: AdminLoginProps) => {
             setIsLoading(false);
             toast.success("Login successful!");
             onLogin(true);
+            navigate("/admin/panel"); // Redirect to admin panel on success
         } catch (err: unknown) {
             setIsLoading(false);
             if (axios.isAxiosError(err)) {

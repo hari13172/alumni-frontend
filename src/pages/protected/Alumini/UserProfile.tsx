@@ -30,14 +30,15 @@ const UserProfile = () => {
     job: "",
     phone: "",
     selfieUrl: "",
-    submittedAt: new Date(),
+    createdAt: new Date(), // Will be overwritten by API response
   });
 
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
         const response = await axios.get(`${api.BASE_URL}/profile/${id}`);
-        setUserData(response.data);
+        // Ensure submittedAt is set from the API response
+        setUserData({ ...response.data, submittedAt: response.data.submittedAt || response.data.createdAt });
       } catch (error) {
         console.error("Failed to fetch user profile:", error);
       }
@@ -63,13 +64,16 @@ const UserProfile = () => {
   }
 
   const formatDate = (date: Date) => {
+    if (!date || isNaN(new Date(date).getTime())) {
+      return "N/A";
+    }
     return new Intl.DateTimeFormat('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
-    }).format(date);
+    }).format(new Date(date));
   };
 
   const handleEditProfile = () => {
@@ -92,7 +96,7 @@ const UserProfile = () => {
               {/* Profile Picture */}
               <div className="flex-shrink-0">
                 <img
-                  src={userData.selfieUrl}
+                  src={userData.selfieUrl || "/placeholder.svg"}
                   alt="Profile"
                   className="w-24 h-24 rounded-full border-4 border-white shadow-lg object-cover"
                 />
@@ -188,7 +192,7 @@ const UserProfile = () => {
             <div className="mt-6 pt-6 border-t">
               <div className="flex items-center space-x-3 text-sm text-gray-500">
                 <Clock className="h-4 w-4" />
-                <span>Registered on {formatDate(userData.submittedAt)}</span>
+                <span>Registered on {formatDate(userData.createdAt)}</span>
                 <span>•</span>
                 <span>Profile ID: {userData.id}</span>
               </div>
