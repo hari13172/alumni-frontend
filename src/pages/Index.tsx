@@ -1,13 +1,15 @@
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { GraduationCap, Users, Settings } from "lucide-react";
+import { Users, Settings } from "lucide-react";
 import VideoIntro from "./protected/Alumini/VideoIntro";
 import SelfieCapture from "./protected/Alumini/SelfieCapture";
 import AlumniForm from "./protected/Alumini/AluminiForm";
 import UserProfile from "./protected/Alumini/UserProfile";
 import AdminPanel from "./protected/Alumini/AdminPanel";
 import AdminLogin from "./protected/Alumini/AdminLogin";
+import logo from "../assets/logo.png"
+import { ModeToggle } from "@/theme/mode-toggle";
 
 export type AlumniData = {
   id: string;
@@ -80,15 +82,16 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen ">
       {/* Header Navigation */}
       {currentStep !== 'video' && currentStep !== 'adminLogin' && (
-        <header className="bg-white shadow-sm border-b">
+        <header className="shadow-sm border-b">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
               <div className="flex items-center space-x-2">
-                <GraduationCap className="h-8 w-8 text-blue-600" />
-                <h1 className="text-xl font-bold text-gray-900">Alumni Portal</h1>
+                {/* <GraduationCap className="h-8 w-8 text-blue-600" /> */}
+                <img src={logo} alt="Logo" className="w-[50px] h-[50px]"/>
+                <h1 className="text-xl font-bold ">Alumni Portal</h1>
               </div>
 
               <div className="flex space-x-4">
@@ -111,6 +114,8 @@ const Index = () => {
                   <Settings className="h-4 w-4" />
                   <span>Admin Panel</span>
                 </Button>
+
+                <ModeToggle />
               </div>
             </div>
           </div>

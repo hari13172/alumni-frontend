@@ -27,6 +27,7 @@ import { UserCheck } from "lucide-react";
 import { useAlumniStore } from "@/global/useAlumniStore";
 import { api } from "@/api/api";
 import { toast } from "sonner";
+import { motion, type Variants } from "framer-motion";
 
 interface AlumniFormProps {
   mode?: string;
@@ -60,6 +61,7 @@ const AlumniForm: React.FC<AlumniFormProps> = () => {
     register,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<FormData>({ resolver: zodResolver(alumniSchema) });
 
@@ -80,7 +82,7 @@ const AlumniForm: React.FC<AlumniFormProps> = () => {
         })
         .catch((err) => {
           console.error("Failed to load profile", err);
-          alert("Unable to load alumni data.");
+          toast.error("Unable to load alumni data.");
         });
     }
   }, [id, setValue, setSelfie]);
@@ -99,7 +101,7 @@ const AlumniForm: React.FC<AlumniFormProps> = () => {
         formData.append("selfie", selfieFile);
       } else if (!id) {
         // Selfie is required only for registration
-        alert("Please capture or upload your selfie first.");
+        toast.error("Please capture or upload your selfie first.");
         setIsSubmitting(false);
         return;
       }
@@ -116,11 +118,11 @@ const AlumniForm: React.FC<AlumniFormProps> = () => {
       reset();
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
-        alert("❌ " + (err.response?.data?.error || err.message || "Unknown Error"));
+        toast.error(err.response?.data?.error || err.message || "Unknown Error");
       } else if (err instanceof Error) {
-        alert("❌ " + err.message);
+        toast.error(err.message);
       } else {
-        alert("❌ Unknown Error");
+        toast.error("Unknown Error");
       }
     } finally {
       setIsSubmitting(false);
@@ -128,116 +130,147 @@ const AlumniForm: React.FC<AlumniFormProps> = () => {
   };
 
   const graduationYears = Array.from({ length: 50 }, (_, i) => currentYear - i);
-  const departments = [
-    "MCA",
-    "MSC",
-    "DS",
-  ];
+  const departments = ["MCA", "MSC", "DS"];
+
+  // Watch form values to bind to Select components
+  const graduationYearValue = watch("graduationYear");
+  const departmentValue = watch("department");
+
+  // Framer Motion variants for the overall card container
+  const cardContainerVariants: Variants = {
+    hidden: { opacity: 0, y: -50, scale: 0.95 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        duration: 0.6,
+        ease: "easeOut",
+      },
+    },
+  };
+
+  // Framer Motion variants for the form fields (staggered)
+  const formVariants: Variants = {
+    hidden: {},
+    visible: {
+      transition: {
+        delayChildren: 0.2,
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  // Framer Motion variants for individual form items
+  const itemVariants: Variants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.4,
+        ease: "easeOut",
+      },
+    },
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl">
-        <CardHeader className="text-center">
-          <CardTitle className="flex items-center justify-center space-x-2 text-2xl">
-            <UserCheck className="h-8 w-8 text-blue-600" />
-            <span>{id ? "Edit Alumni Profile" : "Alumni Registration"}</span>
-          </CardTitle>
-          <p className="text-gray-600">
-            {id
-              ? "Update your alumni profile details below."
-              : "Please provide your details to complete your alumni profile."}
-          </p>
-        </CardHeader>
-
-        <CardContent>
-          <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
-            {/* Name */}
-            <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
-              <Input {...register("name")} id="name" />
-              {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
-            </div>
-
-            {/* Email */}
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input type="email" {...register("email")} id="email" />
-              {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
-            </div>
-
-            {/* Phone */}
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone</Label>
-              <Input {...register("phone")} id="phone" />
-              {errors.phone && <p className="text-red-500 text-sm">{errors.phone.message}</p>}
-            </div>
-
-            {/* Graduation Year */}
-            <div className="space-y-2">
-              <Label>Graduation Year</Label>
-              <Select
-                onValueChange={(v) => setValue("graduationYear", v, { shouldValidate: true })}
-                defaultValue={id ? undefined : ""}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select year" />
-                </SelectTrigger>
-                <SelectContent>
-                  {graduationYears.map((year) => (
-                    <SelectItem key={year} value={year.toString()}>
-                      {year}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.graduationYear && (
-                <p className="text-red-500 text-sm">{errors.graduationYear.message}</p>
-              )}
-            </div>
-
-            {/* Department */}
-            <div className="space-y-2">
-              <Label>Department</Label>
-              <Select
-                onValueChange={(v) => setValue("department", v, { shouldValidate: true })}
-                defaultValue={id ? undefined : ""}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select department" />
-                </SelectTrigger>
-                <SelectContent>
-                  {departments.map((dept) => (
-                    <SelectItem key={dept} value={dept}>
-                      {dept}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.department && (
-                <p className="text-red-500 text-sm">{errors.department.message}</p>
-              )}
-            </div>
-
-            {/* Current Job */}
-            <div className="space-y-2">
-              <Label htmlFor="job">Current Job Title & Company</Label>
-              <Textarea rows={3} {...register("job")} id="job" />
-              {errors.job && (
-                <p className="text-red-500 text-sm">{errors.job.message}</p>
-              )}
-            </div>
-
-            {/* Submit */}
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting
-                ? "Submitting..."
-                : id
-                ? "Update Profile"
-                : "Complete Registration"}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+      <motion.div className="w-full max-w-2xl" variants={cardContainerVariants} initial="hidden" animate="visible">
+        <Card>
+          <CardHeader className="text-center">
+            <CardTitle className="flex items-center justify-center space-x-2 text-2xl">
+              <UserCheck className="h-8 w-8 text-blue-600" />
+              <span>{id ? "Edit Alumni Profile" : "Alumni Registration"}</span>
+            </CardTitle>
+            <p className="text-gray-600">
+              {id
+                ? "Update your alumni profile details below."
+                : "Please provide your details to complete your alumni profile."}
+            </p>
+          </CardHeader>
+          <CardContent>
+            <motion.form
+              onSubmit={handleSubmit(handleFormSubmit)}
+              className="space-y-6"
+              variants={formVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              {/* Name */}
+              <motion.div variants={itemVariants} className="space-y-2">
+                <Label htmlFor="name">Full Name</Label>
+                <Input {...register("name")} id="name" className="w-full" />
+                {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
+              </motion.div>
+              {/* Email */}
+              <motion.div variants={itemVariants} className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input type="email" {...register("email")} id="email" className="w-full" />
+                {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
+              </motion.div>
+              {/* Phone */}
+              <motion.div variants={itemVariants} className="space-y-2">
+                <Label htmlFor="phone">Phone</Label>
+                <Input {...register("phone")} id="phone" className="w-full" />
+                {errors.phone && <p className="text-red-500 text-sm">{errors.phone.message}</p>}
+              </motion.div>
+              {/* Graduation Year */}
+              <motion.div variants={itemVariants} className="space-y-2">
+                <Label>Graduation Year</Label>
+                <Select
+                  value={graduationYearValue}
+                  onValueChange={(v) => setValue("graduationYear", v, { shouldValidate: true })}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select year" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {graduationYears.map((year) => (
+                      <SelectItem key={year} value={year.toString()}>
+                        {year}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.graduationYear && <p className="text-red-500 text-sm">{errors.graduationYear.message}</p>}
+              </motion.div>
+              {/* Department */}
+              <motion.div variants={itemVariants} className="space-y-2">
+                <Label>Department</Label>
+                <Select
+                  value={departmentValue}
+                  onValueChange={(v) => setValue("department", v, { shouldValidate: true })}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select department" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {departments.map((dept) => (
+                      <SelectItem key={dept} value={dept}>
+                        {dept}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.department && <p className="text-red-500 text-sm">{errors.department.message}</p>}
+              </motion.div>
+              {/* Current Job */}
+              <motion.div variants={itemVariants} className="space-y-2">
+                <Label htmlFor="job">Current Job Title & Company</Label>
+                <Textarea rows={3} {...register("job")} id="job" className="w-full" />
+                {errors.job && <p className="text-red-500 text-sm">{errors.job.message}</p>}
+              </motion.div>
+              {/* Submit */}
+              <motion.div variants={itemVariants}>
+                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                  {isSubmitting ? "Submitting..." : id ? "Update Profile" : "Complete Registration"}
+                </Button>
+              </motion.div>
+            </motion.form>
+          </CardContent>
+        </Card>
+      </motion.div>
     </div>
   );
 };
