@@ -23,8 +23,10 @@ export type AlumniData = {
 
 const Index = () => {
   const [currentStep, setCurrentStep] = useState<'video' | 'selfie' | 'form' | 'profile' | 'admin' | 'adminLogin'>('video');
-  const [userSelfie, setUserSelfie] = useState<string>("");
-  const [userData, setUserData] = useState<AlumniData | null>(null);
+  
+  const [, setUserSelfie] = useState<string>("");
+
+  const [userData] = useState<AlumniData | null>(null);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
 
   const handleVideoComplete = () => {
