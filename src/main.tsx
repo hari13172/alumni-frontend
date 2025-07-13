@@ -12,7 +12,7 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <TooltipProvider>
       <Sonner position='top-right' richColors />
-      <ThemeProvider defaultTheme='dark' storageKey='alumini-theme'>
+      <ThemeProvider defaultTheme='light' storageKey='alumini-theme'>
         <BrowserRouter>
           <App />
         </BrowserRouter>
