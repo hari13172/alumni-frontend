@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,8 +25,9 @@ import type { AlumniData } from "@/pages/Index";
 import { api } from "@/api/api";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose, DialogFooter } from "@/components/ui/dialog";
 import { motion, type Variants } from "framer-motion";
+import { toast } from "sonner";
 
 const AdminPanel = () => {
   const [alumniData, setAlumniData] = useState<AlumniData[]>([]);
@@ -38,6 +38,8 @@ const AdminPanel = () => {
   const [selectedAlumni, setSelectedAlumni] = useState<AlumniData | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [alumniToDelete, setAlumniToDelete] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -97,10 +99,42 @@ const AdminPanel = () => {
     b.localeCompare(a)
   )];
 
-  const deleteAlumni = (id: string) => {
-    const updatedData = alumniData.filter((alumni) => alumni.id !== id);
-    setAlumniData(updatedData);
-    setFilteredData(updatedData);
+  const handleDeleteClick = (id: string) => {
+    setAlumniToDelete(id);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!alumniToDelete) return;
+
+    try {
+      const token = localStorage.getItem("adminToken");
+      if (!token) {
+        toast.error("No authentication token found. Please log in.");
+        setIsDeleteDialogOpen(false);
+        return;
+      }
+
+      await axios.delete(`${api.ADMIN_BASE_URL}/alumni/${alumniToDelete}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const updatedData = alumniData.filter((alumni) => alumni.id !== alumniToDelete);
+      setAlumniData(updatedData);
+      setFilteredData(updatedData);
+      toast.success("Alumni deleted successfully");
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        toast.error(err.response?.data?.error || "Failed to delete alumni");
+      } else {
+        toast.error("Failed to delete alumni");
+      }
+    } finally {
+      setIsDeleteDialogOpen(false);
+      setAlumniToDelete(null);
+    }
   };
 
   const exportData = () => {
@@ -113,7 +147,6 @@ const AdminPanel = () => {
     link.click();
   };
 
-
   const formatDate = (date: Date | string | undefined) => {
     if (!date || isNaN(new Date(date).getTime())) {
       return "N/A";
@@ -121,13 +154,13 @@ const AdminPanel = () => {
     try {
       const parsedDate = new Date(date);
       return parsedDate.toLocaleString("en-IN", {
-        timeZone: "Asia/Kolkata", // ✅ Convert to IST
+        timeZone: "Asia/Kolkata",
         year: "numeric",
         month: "long",
         day: "numeric",
         hour: "2-digit",
         minute: "2-digit",
-        hour12: true, // Optional: show AM/PM format
+        hour12: true,
       });
     } catch (e) {
       console.error("Date parsing error:", e, "Input:", date);
@@ -140,14 +173,13 @@ const AdminPanel = () => {
     setIsSheetOpen(true);
   };
 
-const handleImageClick = (alumni: AlumniData) => {
-  // Construct the image URL using the same logic as in the alumni list and sheet
-  const imageUrl = alumni.selfieKey
-    ? `${api.BASE_URL}/selfie/${alumni.selfieKey}`
-    : "/placeholder.svg";
-  setSelectedImage(imageUrl);
-  setIsImageDialogOpen(true);
-};
+  const handleImageClick = (alumni: AlumniData) => {
+    const imageUrl = alumni.selfieKey
+      ? `${api.BASE_URL}/selfie/${alumni.selfieKey}`
+      : "/placeholder.svg";
+    setSelectedImage(imageUrl);
+    setIsImageDialogOpen(true);
+  };
 
   // Framer Motion variants for main sections
   const sectionVariants: Variants = {
@@ -239,7 +271,7 @@ const handleImageClick = (alumni: AlumniData) => {
     },
   };
 
-  // Variants for dialog (image popup)
+  // Variants for dialog (image popup and delete confirmation)
   const dialogVariants: Variants = {
     hidden: { opacity: 0, scale: 0.8 },
     visible: {
@@ -317,7 +349,7 @@ const handleImageClick = (alumni: AlumniData) => {
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 rounded-full flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center bg-blue-100">
                     <Users className="h-6 w-6 text-blue-600" />
                   </div>
                   <div>
@@ -332,7 +364,7 @@ const handleImageClick = (alumni: AlumniData) => {
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 rounded-full flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center bg-green-100">
                     <Building className="h-6 w-6 text-green-600" />
                   </div>
                   <div>
@@ -347,7 +379,7 @@ const handleImageClick = (alumni: AlumniData) => {
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 rounded-full flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center bg-purple-100">
                     <GraduationCap className="h-6 w-6 text-purple-600" />
                   </div>
                   <div>
@@ -362,7 +394,7 @@ const handleImageClick = (alumni: AlumniData) => {
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 rounded-full flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center bg-orange-100">
                     <BarChart3 className="h-6 w-6 text-orange-600" />
                   </div>
                   <div>
@@ -513,7 +545,7 @@ const handleImageClick = (alumni: AlumniData) => {
                                     <Button
                                       size="sm"
                                       variant="outline"
-                                      onClick={() => deleteAlumni(alumni.id)}
+                                      onClick={() => handleDeleteClick(alumni.id)}
                                       className="text-red-600 hover:text-red-700"
                                     >
                                       <Trash2 className="h-4 w-4" />
@@ -563,6 +595,40 @@ const handleImageClick = (alumni: AlumniData) => {
           </motion.div>
         </Dialog>
 
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <motion.div
+            variants={dialogVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+          >
+            <DialogContent className="sm:max-w-md p-4">
+              <DialogHeader>
+                <DialogTitle>Confirm Deletion</DialogTitle>
+                <DialogClose />
+              </DialogHeader>
+              <div className="py-4">
+                <p>Are you sure you want to delete this alumni record? This action cannot be undone.</p>
+              </div>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsDeleteDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={confirmDelete}
+                >
+                  Delete
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </motion.div>
+        </Dialog>
+
         {/* Alumni Details Sheet */}
         <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
           <motion.div
@@ -601,9 +667,8 @@ const handleImageClick = (alumni: AlumniData) => {
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ duration: 0.3, ease: "easeOut" }}
-                      onClick={() => handleImageClick(selectedAlumni)} // Pass the entire alumni object
+                      onClick={() => handleImageClick(selectedAlumni)}
                     />
-
                     <h2 className="text-2xl font-bold">{selectedAlumni.name}</h2>
                     <p>{selectedAlumni.job || "Not specified"}</p>
                     <div className="flex gap-2 mt-2">
