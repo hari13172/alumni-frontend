@@ -140,10 +140,14 @@ const AdminPanel = () => {
     setIsSheetOpen(true);
   };
 
-  const handleImageClick = (imageUrl: string) => {
-    setSelectedImage(imageUrl);
-    setIsImageDialogOpen(true);
-  };
+const handleImageClick = (alumni: AlumniData) => {
+  // Construct the image URL using the same logic as in the alumni list and sheet
+  const imageUrl = alumni.selfieKey
+    ? `${api.BASE_URL}/selfie/${alumni.selfieKey}`
+    : "/placeholder.svg";
+  setSelectedImage(imageUrl);
+  setIsImageDialogOpen(true);
+};
 
   // Framer Motion variants for main sections
   const sectionVariants: Variants = {
@@ -469,17 +473,17 @@ const AdminPanel = () => {
                         <CardContent className="p-4">
                           <div className="flex items-center space-x-4">
                             <motion.img
-                    src={
-                      alumni.selfieKey
-                        ? `${api.BASE_URL}/selfie/${alumni.selfieKey}`
-                        : "/placeholder.svg"
-                    }
-                    alt="Profile"
-                    className="w-24 h-24 rounded-full border-4 border-white shadow-lg object-cover"
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.5, ease: "easeOut" }}
-                  />
+                              src={
+                                alumni.selfieKey
+                                  ? `${api.BASE_URL}/selfie/${alumni.selfieKey}`
+                                  : "/placeholder.svg"
+                              }
+                              alt="Profile"
+                              className="w-24 h-24 rounded-full border-4 border-white shadow-lg object-cover"
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ duration: 0.5, ease: "easeOut" }}
+                            />
                             <div className="flex-1 grid md:grid-cols-3 gap-4">
                               <div>
                                 <h3 className="font-semibold">{alumni.name}</h3>
@@ -587,14 +591,19 @@ const AdminPanel = () => {
                   {/* Profile Section */}
                   <motion.div variants={itemVariants} className="flex flex-col items-center">
                     <motion.img
-                      src={selectedAlumni.selfieUrl || "/placeholder.svg"}
+                      src={
+                        selectedAlumni.selfieKey
+                          ? `${api.BASE_URL}/selfie/${selectedAlumni.selfieKey}`
+                          : "/placeholder.svg"
+                      }
                       alt={selectedAlumni.name}
                       className="w-28 h-28 rounded-full object-cover border-4 border-blue-200 shadow-lg mb-4 cursor-pointer"
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ duration: 0.3, ease: "easeOut" }}
-                      onClick={() => handleImageClick(selectedAlumni.selfieUrl || "/placeholder.svg")}
+                      onClick={() => handleImageClick(selectedAlumni)} // Pass the entire alumni object
                     />
+
                     <h2 className="text-2xl font-bold">{selectedAlumni.name}</h2>
                     <p>{selectedAlumni.job || "Not specified"}</p>
                     <div className="flex gap-2 mt-2">
