@@ -469,14 +469,17 @@ const AdminPanel = () => {
                         <CardContent className="p-4">
                           <div className="flex items-center space-x-4">
                             <motion.img
-                              src={alumni.selfieUrl || "/placeholder.svg"}
-                              alt={alumni.name}
-                              className="w-16 h-16 rounded-full object-cover border-2 border-gray-200 cursor-pointer"
-                              initial={{ opacity: 0, scale: 0.8 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              transition={{ duration: 0.3, ease: "easeOut" }}
-                              onClick={() => handleImageClick(alumni.selfieUrl || "/placeholder.svg")}
-                            />
+                    src={
+                      alumni.selfieKey
+                        ? `${api.BASE_URL}/selfie/${alumni.selfieKey}`
+                        : "/placeholder.svg"
+                    }
+                    alt="Profile"
+                    className="w-24 h-24 rounded-full border-4 border-white shadow-lg object-cover"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5, ease: "easeOut" }}
+                  />
                             <div className="flex-1 grid md:grid-cols-3 gap-4">
                               <div>
                                 <h3 className="font-semibold">{alumni.name}</h3>

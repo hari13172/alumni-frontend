@@ -31,6 +31,7 @@ const UserProfile = () => {
     job: "",
     phone: "",
     selfieUrl: "",
+    selfieKey: "",
     createdAt: new Date(),
   });
 
@@ -137,26 +138,26 @@ const UserProfile = () => {
   }
 
 
-const formatDate = (date: Date | string | undefined) => {
-  if (!date || isNaN(new Date(date).getTime())) {
-    return "N/A";
-  }
-  try {
-    const parsedDate = new Date(date);
-    return parsedDate.toLocaleString("en-IN", {
-      timeZone: "Asia/Kolkata", // ✅ Convert to IST
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true, // Optional: show AM/PM format
-    });
-  } catch (e) {
-    console.error("Date parsing error:", e, "Input:", date);
-    return "N/A";
-  }
-};
+  const formatDate = (date: Date | string | undefined) => {
+    if (!date || isNaN(new Date(date).getTime())) {
+      return "N/A";
+    }
+    try {
+      const parsedDate = new Date(date);
+      return parsedDate.toLocaleString("en-IN", {
+        timeZone: "Asia/Kolkata", // ✅ Convert to IST
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true, // Optional: show AM/PM format
+      });
+    } catch (e) {
+      console.error("Date parsing error:", e, "Input:", date);
+      return "N/A";
+    }
+  };
 
 
 
@@ -193,7 +194,11 @@ const formatDate = (date: Date | string | undefined) => {
                 {/* Profile Picture */}
                 <div className="flex-shrink-0">
                   <motion.img
-                    src={userData.selfieUrl || "/placeholder.svg"}
+                    src={
+                      userData.selfieKey
+                        ? `${api.BASE_URL}/selfie/${userData.selfieKey}`
+                        : "/placeholder.svg"
+                    }
                     alt="Profile"
                     className="w-24 h-24 rounded-full border-4 border-white shadow-lg object-cover"
                     initial={{ opacity: 0, scale: 0.8 }}

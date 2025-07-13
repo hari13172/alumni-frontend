@@ -20,6 +20,7 @@ export type AlumniData = {
   job: string;
   phone: string;
   selfieUrl: string;
+  selfieKey: string;
   createdAt: Date;
 };
 
