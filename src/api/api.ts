@@ -1,4 +1,4 @@
 export const api = {
-    BASE_URL: "http://localhost:3000/api/alumni",
-    ADMIN_BASE_URL: "http://localhost:3000/api/admin",
-}
+    BASE_URL: import.meta.env.VITE_BASE_URL,
+    ADMIN_BASE_URL: import.meta.env.VITE_ADMIN_BASE_URL,
+};
